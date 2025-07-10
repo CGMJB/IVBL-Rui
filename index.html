@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub前端CSV积分处理系统</title>
+    <title>CSV积分处理系统（支持x条件检索）</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -14,106 +14,150 @@
             --accent: #4a6fc5;
             --light: #f0f5ff;
             --dark: #0d1b36;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
         }
         
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4edff 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            color: #212529;
             padding-bottom: 60px;
         }
         
         .header {
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
-            padding: 30px 0;
+            padding: 40px 0;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            border-radius: 0 0 20px 20px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .header::after {
+            content: "";
+            position: absolute;
+            bottom: -80px;
+            right: -80px;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
         }
         
         .header h1 {
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
         }
         
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             opacity: 0.9;
             max-width: 800px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
         
         .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
             border: none;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             transition: transform 0.3s, box-shadow 0.3s;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: white;
+            overflow: hidden;
         }
         
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
         }
         
         .card-header {
             background: linear-gradient(45deg, var(--primary), var(--accent));
             color: white;
-            border-radius: 15px 15px 0 0 !important;
+            border-radius: 0 !important;
             font-weight: 600;
-            padding: 15px 20px;
-            font-size: 1.1rem;
+            padding: 15px 25px;
+            font-size: 1.15rem;
+            border-bottom: none;
         }
         
         .card-body {
-            padding: 25px;
+            padding: 30px;
         }
         
         .btn-primary {
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             border: none;
-            padding: 12px 25px;
+            padding: 12px 28px;
             font-weight: 600;
+            font-size: 1.05rem;
+            border-radius: 8px;
             transition: all 0.3s;
         }
         
         .btn-primary:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(30, 60, 114, 0.4);
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
         }
         
         .upload-area {
             border: 2px dashed var(--accent);
             border-radius: 12px;
-            padding: 30px;
+            padding: 35px;
             text-align: center;
-            margin: 20px 0;
-            background-color: rgba(240, 245, 255, 0.6);
+            margin: 25px 0;
+            background-color: rgba(240, 245, 255, 0.5);
             transition: all 0.3s;
             cursor: pointer;
         }
         
         .upload-area:hover {
             background-color: rgba(234, 241, 255, 0.8);
-            transform: scale(1.01);
+            transform: scale(1.02);
+            border-color: var(--secondary);
         }
         
         .upload-icon {
-            font-size: 3.5rem;
+            font-size: 4rem;
             color: var(--accent);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1);
+            color: var(--secondary);
         }
         
         .preview-table {
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
-            margin: 20px 0;
+            margin: 25px 0;
             border: 1px solid #dee2e6;
-            border-radius: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
         
         .preview-table table {
@@ -124,6 +168,7 @@
             background-color: var(--light);
             position: sticky;
             top: 0;
+            font-weight: 600;
         }
         
         .result-container {
@@ -138,78 +183,178 @@
         .team-card {
             background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%);
             border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
         }
         
         .team-rank {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 32px;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        
-        .github-corner {
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 100;
-        }
-        
-        .github-corner svg {
-            fill: var(--primary);
-            color: #fff;
-        }
-        
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--accent);
-            margin-bottom: 15px;
-        }
-        
-        .step-number {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             width: 36px;
             height: 36px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
             border-radius: 50%;
             text-align: center;
-            line-height: 36px;
             font-weight: bold;
-            margin-right: 10px;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        
+        .feature-icon {
+            font-size: 2.8rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .feature-icon:hover {
+            transform: scale(1.1);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 18px;
         }
         
         .footer {
             background: linear-gradient(45deg, var(--dark), #1a2b4d);
             color: white;
-            padding: 30px 0;
-            margin-top: 50px;
-            border-radius: 20px 20px 0 0;
+            padding: 40px 0 30px;
+            margin-top: 60px;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(26, 43, 77, 0.8));
+        }
+        
+        .highlight {
+            background-color: rgba(255, 255, 0, 0.2);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .rule-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-right: 8px;
+        }
+        
+        .rule-1 {
+            background-color: rgba(40, 167, 69, 0.15);
+            color: var(--success);
+        }
+        
+        .rule-2 {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: var(--warning);
+        }
+        
+        .rule-3 {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: var(--danger);
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stats-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .stats-label {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: var(--primary);
+            word-break: break-all;
+            background-color: rgba(30, 60, 114, 0.05);
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 30px 0;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1.1rem;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+            
+            .upload-area {
+                padding: 25px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- GitHub Corner -->
-    <a href="https://github.com/yourusername/csv-score-processor" class="github-corner" aria-label="View source on GitHub">
-        <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#1e3c72; color:#fff;" aria-hidden="true">
-            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
-            <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
-            <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
-        </svg>
-    </a>
-
     <div class="header">
         <div class="container">
-            <h1><i class="fas fa-calculator me-3"></i>GitHub前端CSV积分处理系统</h1>
-            <p>上传CSV文件，在浏览器中自动计算队伍积分并生成排名结果 - 无需服务器支持，100%客户端处理</p>
+            <h1><i class="fas fa-calculator me-3"></i>CSV积分处理系统</h1>
+            <p>上传CSV文件，在浏览器中自动计算队伍积分并生成排名结果 - 支持<span class="highlight">"x"条件检索</span></p>
         </div>
     </div>
 
@@ -229,18 +374,23 @@
                             <h4>拖放CSV文件到此处</h4>
                             <p class="text-muted">或点击选择文件</p>
                             <input type="file" id="csvFile" class="d-none" accept=".csv">
-                            <button class="btn btn-primary mt-2" id="browseBtn">
+                            <button class="btn btn-primary mt-3" id="browseBtn">
                                 <i class="fas fa-folder-open me-2"></i>浏览文件
                             </button>
                         </div>
                         
-                        <div class="alert alert-info">
+                        <div class="alert alert-primary">
                             <i class="fas fa-info-circle me-2"></i>
-                            CSV文件应包含以下列：队伍A, 队伍B, M, N, O, P, Q, R, S
+                            CSV文件应包含以下列：队伍A, 队伍B, M, N, O, P, <span class="highlight">Q(x条件)</span>, R, S
                         </div>
                         
-                        <div class="d-grid">
-                            <button class="btn btn-primary" id="processBtn" disabled>
+                        <div id="fileInfo" class="d-none">
+                            <h5>已选文件：</h5>
+                            <div class="file-name" id="fileName"></div>
+                        </div>
+                        
+                        <div class="d-grid mt-3">
+                            <button class="btn btn-primary btn-lg" id="processBtn" disabled>
                                 <i class="fas fa-cogs me-2"></i>处理数据
                             </button>
                         </div>
@@ -263,29 +413,37 @@
                         <i class="fas fa-list-ol me-2"></i>使用步骤
                     </div>
                     <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
+                        <div class="d-flex align-items-center mb-4">
                             <span class="step-number">1</span>
-                            <h5 class="mb-0">上传CSV文件</h5>
+                            <div>
+                                <h5 class="mb-1">上传CSV文件</h5>
+                                <p class="mb-0">点击"浏览文件"或拖放CSV文件到上传区域</p>
+                            </div>
                         </div>
-                        <p>点击"浏览文件"或拖放CSV文件到上传区域</p>
                         
-                        <div class="d-flex align-items-center mb-3">
+                        <div class="d-flex align-items-center mb-4">
                             <span class="step-number">2</span>
-                            <h5 class="mb-0">检查数据预览</h5>
+                            <div>
+                                <h5 class="mb-1">检查数据预览</h5>
+                                <p class="mb-0">确认上传的数据格式正确</p>
+                            </div>
                         </div>
-                        <p>确认上传的数据格式正确</p>
                         
-                        <div class="d-flex align-items-center mb-3">
+                        <div class="d-flex align-items-center mb-4">
                             <span class="step-number">3</span>
-                            <h5 class="mb-0">处理数据</h5>
+                            <div>
+                                <h5 class="mb-1">处理数据</h5>
+                                <p class="mb-0">点击"处理数据"按钮计算积分和排名</p>
+                            </div>
                         </div>
-                        <p>点击"处理数据"按钮计算积分和排名</p>
                         
                         <div class="d-flex align-items-center">
                             <span class="step-number">4</span>
-                            <h5 class="mb-0">查看并导出结果</h5>
+                            <div>
+                                <h5 class="mb-1">查看并导出结果</h5>
+                                <p class="mb-0">查看结果并导出Excel文件</p>
+                            </div>
                         </div>
-                        <p>在右侧查看结果并导出Excel文件</p>
                     </div>
                 </div>
             </div>
@@ -297,19 +455,37 @@
                         <i class="fas fa-chart-line me-2"></i>处理结果
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle me-2"></i>
-                            文件处理成功！共处理了 <span id="rowCount">0</span> 行数据，
-                            发现 <span id="teamCount">0</span> 支队伍
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="fas fa-file-csv text-primary"></i>
+                                    <div class="stats-value" id="rowCount">0</div>
+                                    <div class="stats-label">数据行数</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="fas fa-users text-success"></i>
+                                    <div class="stats-value" id="teamCount">0</div>
+                                    <div class="stats-label">队伍数量</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <i class="fas fa-gamepad text-warning"></i>
+                                    <div class="stats-value" id="matchCount">0</div>
+                                    <div class="stats-label">比赛场次</div>
+                                </div>
+                            </div>
                         </div>
                         
-                        <h5><i class="fas fa-trophy me-2"></i>队伍排名</h5>
+                        <h5 class="section-title"><i class="fas fa-trophy me-2"></i>队伍排名</h5>
                         <div id="rankingContainer" class="mb-4">
                             <!-- 排名将通过JavaScript动态生成 -->
                         </div>
                         
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary" id="exportExcel">
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-primary btn-lg" id="exportExcel">
                                 <i class="fas fa-file-excel me-2"></i>导出Excel文件
                             </button>
                             <button class="btn btn-outline-primary" id="resetBtn">
@@ -326,18 +502,18 @@
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">
-                                <i class="fas fa-arrow-right text-primary me-2"></i>
-                                <strong>规则1：</strong> 比较M和N列，数值大的一方获得1积分，同时计算净胜值
+                                <span class="rule-badge rule-1">规则1</span>
+                                <strong>比较M和N列：</strong> 数值大的一方获得1积分，同时计算净胜值
                             </li>
                             <li class="list-group-item">
-                                <i class="fas fa-arrow-right text-primary me-2"></i>
-                                <strong>规则2：</strong> 若M=N，则比较O和P列，数值大的一方获得1积分
+                                <span class="rule-badge rule-2">规则2</span>
+                                <strong>若M=N：</strong> 比较O和P列，数值大的一方获得1积分
                             </li>
                             <li class="list-group-item">
-                                <i class="fas fa-arrow-right text-primary me-2"></i>
-                                <strong>规则3：</strong> 若O=P，则检查Q列：
-                                <ul>
-                                    <li>若Q为"四抓"，则R和S中数值小的一方获得1积分</li>
+                                <span class="rule-badge rule-3">规则3</span>
+                                <strong>若O=P：</strong> 检查Q列：
+                                <ul class="mt-2">
+                                    <li>若Q包含<span class="highlight">"x"</span>，则R和S中数值小的一方获得1积分</li>
                                     <li>否则，R和S中数值大的一方获得1积分</li>
                                 </ul>
                             </li>
@@ -351,26 +527,26 @@
                     </div>
                     <div class="card-body">
                         <div class="row text-center">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4 mb-4">
                                 <div class="feature-icon">
                                     <i class="fas fa-lock"></i>
                                 </div>
-                                <h6>隐私保护</h6>
-                                <p class="small">数据仅在浏览器中处理，不会上传到任何服务器</p>
+                                <h5>隐私保护</h5>
+                                <p class="small mb-0">数据仅在浏览器中处理，不会上传到任何服务器</p>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4 mb-4">
                                 <div class="feature-icon">
                                     <i class="fas fa-bolt"></i>
                                 </div>
-                                <h6>实时处理</h6>
-                                <p class="small">即时计算积分和排名，无需等待</p>
+                                <h5>实时处理</h5>
+                                <p class="small mb-0">即时计算积分和排名，无需等待</p>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4 mb-4">
                                 <div class="feature-icon">
                                     <i class="fas fa-file-excel"></i>
                                 </div>
-                                <h6>Excel导出</h6>
-                                <p class="small">一键导出专业格式的Excel文件</p>
+                                <h5>Excel导出</h5>
+                                <p class="small mb-0">一键导出专业格式的Excel文件</p>
                             </div>
                         </div>
                     </div>
@@ -381,7 +557,8 @@
     
     <div class="footer">
         <div class="container text-center">
-            <p>GitHub前端CSV积分处理系统 &copy; 2023 - 基于HTML5和JavaScript构建</p>
+            <h4>CSV积分处理系统</h4>
+            <p>支持"x"条件检索 &copy; 2023 - 基于HTML5和JavaScript构建</p>
             <p class="mb-0">可在GitHub Pages上完全托管，无需服务器支持</p>
         </div>
     </div>
@@ -400,6 +577,9 @@
             const resetBtn = document.getElementById('resetBtn');
             const rowCountSpan = document.getElementById('rowCount');
             const teamCountSpan = document.getElementById('teamCount');
+            const matchCountSpan = document.getElementById('matchCount');
+            const fileName = document.getElementById('fileName');
+            const fileInfo = document.getElementById('fileInfo');
             
             let csvData = [];
             let processedData = [];
@@ -431,11 +611,13 @@
             });
             
             function highlight() {
-                dropZone.style.backgroundColor = 'rgba(74, 111, 197, 0.1)';
+                dropZone.style.backgroundColor = 'rgba(74, 111, 197, 0.15)';
+                dropZone.style.borderColor = '#1e3c72';
             }
             
             function unhighlight() {
-                dropZone.style.backgroundColor = 'rgba(240, 245, 255, 0.6)';
+                dropZone.style.backgroundColor = 'rgba(240, 245, 255, 0.5)';
+                dropZone.style.borderColor = '#4a6fc5';
             }
             
             dropZone.addEventListener('drop', handleDrop, false);
@@ -453,6 +635,10 @@
             
             function handleFile(file) {
                 if (!file) return;
+                
+                // 显示文件名
+                fileName.textContent = file.name;
+                fileInfo.classList.remove('d-none');
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -541,7 +727,7 @@
                 tableHTML += `</tbody></table>`;
                 
                 if (csvData.length > 10) {
-                    tableHTML += `<div class="text-center py-2">显示前10行，共${csvData.length}行</div>`;
+                    tableHTML += `<div class="text-center py-3 bg-light">显示前10行，共${csvData.length}行数据</div>`;
                 }
                 
                 previewContainer.innerHTML = tableHTML;
@@ -551,11 +737,13 @@
                 processedData = [];
                 teamStats = {};
                 
+                // 处理每一行数据
                 csvData.forEach(row => {
                     let scoreA = 0;
                     let scoreB = 0;
                     let netA = 0;
                     let netB = 0;
+                    let ruleUsed = 1;
                     
                     // 规则1: 比较M和N
                     if (row.m !== row.n) {
@@ -571,6 +759,7 @@
                     }
                     // 规则2: M等于N时比较O和P
                     else if (row.o !== row.p) {
+                        ruleUsed = 2;
                         if (row.o > row.p) {
                             scoreA = 1;
                         } else {
@@ -579,15 +768,16 @@
                     }
                     // 规则3: O等于P时处理Q,R,S
                     else {
-                        if (row.q.includes("四抓")) {
-                            // 四抓规则: 小的一方得1分
+                        ruleUsed = 3;
+                        if (row.q.toLowerCase().includes("x")) {
+                            // x规则: 小的一方得1分
                             if (row.r < row.s) {
                                 scoreA = 1;
                             } else if (row.r > row.s) {
                                 scoreB = 1;
                             }
                         } else {
-                            // 非四抓规则: 大的一方得1分
+                            // 非x规则: 大的一方得1分
                             if (row.r > row.s) {
                                 scoreA = 1;
                             } else if (row.r < row.s) {
@@ -603,7 +793,8 @@
                         scoreA: scoreA,
                         netA: netA,
                         scoreB: scoreB,
-                        netB: netB
+                        netB: netB,
+                        ruleUsed: ruleUsed
                     });
                     
                     // 更新队伍统计
@@ -651,11 +842,12 @@
                 // 显示统计信息
                 rowCountSpan.textContent = csvData.length;
                 teamCountSpan.textContent = rankingData.length;
+                matchCountSpan.textContent = csvData.length;
                 
                 // 生成排名HTML
-                let rankingHTML = '<div class="table-responsive"><table class="table table-striped">';
+                let rankingHTML = '<div class="table-responsive"><table class="table table-hover align-middle">';
                 rankingHTML += `
-                    <thead>
+                    <thead class="table-light">
                         <tr>
                             <th>排名</th>
                             <th>队伍名称</th>
@@ -670,10 +862,10 @@
                 rankingData.forEach((team, index) => {
                     rankingHTML += `
                         <tr>
-                            <td>${index + 1}</td>
+                            <td><span class="badge bg-primary rounded-pill">${index + 1}</span></td>
                             <td><strong>${team.team}</strong></td>
-                            <td>${team.score}</td>
-                            <td class="${team.net >= 0 ? 'text-success' : 'text-danger'}">${team.net.toFixed(2)}</td>
+                            <td class="fw-bold">${team.score}</td>
+                            <td class="${team.net >= 0 ? 'text-success fw-bold' : 'text-danger'}">${team.net.toFixed(2)}</td>
                             <td>${team.games}</td>
                         </tr>
                     `;
@@ -700,7 +892,8 @@
                     '积分A': row.scoreA,
                     '净胜A': row.netA,
                     '积分B': row.scoreB,
-                    '净胜B': row.netB
+                    '净胜B': row.netB,
+                    '使用规则': `规则${row.ruleUsed}`
                 }));
                 
                 const detailWs = XLSX.utils.json_to_sheet(detailData);
@@ -710,16 +903,23 @@
                 const rankingData = [];
                 let rank = 1;
                 
-                for (const [team, stats] of Object.entries(teamStats)) {
-                    rankingData.push({
-                        '排名': rank,
-                        '队伍名称': team,
-                        '总积分': stats.score,
-                        '总净胜分': stats.net,
-                        '参赛场次': stats.games
+                // 准备排名数据（按积分和净胜分排序）
+                const sortedTeams = Object.entries(teamStats)
+                    .map(([team, stats]) => ({ team, ...stats }))
+                    .sort((a, b) => {
+                        if (b.score !== a.score) return b.score - a.score;
+                        return b.net - a.net;
                     });
-                    rank++;
-                }
+                
+                sortedTeams.forEach((team, index) => {
+                    rankingData.push({
+                        '排名': index + 1,
+                        '队伍名称': team.team,
+                        '总积分': team.score,
+                        '总净胜分': team.net,
+                        '参赛场次': team.games
+                    });
+                });
                 
                 const rankingWs = XLSX.utils.json_to_sheet(rankingData);
                 XLSX.utils.book_append_sheet(wb, rankingWs, '队伍排名');
@@ -736,6 +936,7 @@
                 csvData = [];
                 processedData = [];
                 teamStats = {};
+                fileInfo.classList.add('d-none');
             }
         });
     </script>
